@@ -24,3 +24,9 @@ assert DB_USER
 DB_PASSWORD = os.getenv('DB_PASSWORD', None)
 assert DB_PASSWORD
 
+# REDIS
+REDIS_HOST = os.getenv('REDIS_HOST', '127.0.0.1')
+assert REDIS_HOST
+
+REDIS_PORT = os.getenv('REDIS_PORT', 6379)
+assert REDIS_PORT

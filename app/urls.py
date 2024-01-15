@@ -17,6 +17,9 @@ from django.urls import path
 from app import views
 
 urlpatterns = [
-    # Home
-    path('',  views.homes.GetHomeView.as_view(), name="home"),
+    # Rooms
+    path("",  views.rooms.GetRoomsView.as_view(), name="rooms"),
+
+    # Room
+    path("<str:slug>", views.rooms.GetRoomView.as_view(), name="room"),
 ]
