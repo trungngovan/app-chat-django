@@ -1,6 +1,6 @@
 from typing import Union
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from rest_framework.request import Request
 
 from app import serializers
@@ -20,6 +20,15 @@ class GetRoomsView(GetAPIView):
         })
 
 
+class CreateRoomView(PostAPIView):
+    deserializer_class = serializers.CreateRoomDeserializer
+    permission_classes = ()
+
+    def do_post(self, request: Request, request_data: Union[dict, list], *args, **kwargs) -> HttpResponse:
+        new_room = room_services.create_room(request_data)
+        return redirect("rooms")
+
+
 class GetRoomView(GetAPIView):
     deserializer_class = None
     permission_classes = ()
@@ -29,6 +38,7 @@ class GetRoomView(GetAPIView):
         room = room_services.get_room_by_slug(slug)
         messages = message_services.get_messages_by_room_id(room["id"])
         return render(request, "room/room.html", {
+            "slug": slug,
             "room": room,
             "messages": messages
         })

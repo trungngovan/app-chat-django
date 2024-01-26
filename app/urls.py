@@ -22,4 +22,5 @@ urlpatterns = [
 
     # Room
     path("<str:slug>", views.rooms.GetRoomView.as_view(), name="room"),
+    path("create_room/", views.rooms.CreateRoomView.as_view(), name="create_room")
 ]

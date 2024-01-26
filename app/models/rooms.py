@@ -5,7 +5,7 @@ from django.db import models
 # Create your models here.
 class Room(models.Model):
     id = models.AutoField(primary_key=True)
-    slug = models.SlugField(max_length=10)
+    slug = models.SlugField(max_length=255)
     name_room = models.CharField(max_length=255)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     password = models.CharField(max_length=255)

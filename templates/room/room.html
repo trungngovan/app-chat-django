@@ -9,15 +9,18 @@
             <div class="row d-flex justify-content-center">
                 <div class="col-12">
                     <div class="alert alert-info d-flex justify-content-between" role="alert">
+                        <a href="/#">
+                            <button type="button" class="btn btn-outline-dark">Home</button>
+                        </a>
                         <h5>{{ room.name_room }}</h5>
                         <a href="/accounts/logout/">
-                            <button type="button" class="btn btn-light">Log Out</button>
+                            <button type="button" class="btn btn-outline-dark">Log Out</button>
                         </a>
                     </div>
                     <form>
                         <div class="form-group">
                             {% if messages %}
-                                <div class="jumbotron" id="chatbox" style="padding: 2px 2px;max-height: 300px;overflow-y: scroll;">
+                                <div class="jumbotron" id="chat_box" style="padding: 2px 2px;max-height: 300px;overflow-y: scroll;">
                                 {% for message in messages %}
                                     <div class="chat-message {% if message.author == request.user.username %}text-right{% else %}text-left{% endif %}">
                                         {% if message.author == request.user.username %}
@@ -29,7 +32,7 @@
                                 {% endfor %}
                                 </div>
                             {% else %}
-                                <div class="jumbotron" id="chatbox" style="padding: 2px 2px;"></div>
+                                <div class="jumbotron" id="chat_box" style="padding: 2px 2px;max-height: 300px;overflow-y: scroll;"></div>
                                 <b>No Messages in this Room.</b>
                             {% endif %}
                 </div>
@@ -41,67 +44,80 @@
             </div>
         </div>
         </div>
-        {{ slug|json_script:"slug" }}
+        {{ slug|json_script:"room_slug" }}
         <script>
-            const chatbox = document.querySelector("#chatbox");
+            const chat_box = document.querySelector("#chat_box");
 
-            // Function to scroll to the bottom of the chatbox
+            // Function to scroll to the bottom of the chat box
             function scrollToBottom() {
-                chatbox.scrollTop = chatbox.scrollHeight;
+                chat_box.scrollTop = chat_box.scrollHeight;
             }
 
             // Scroll to bottom when the page is loaded
-            scrollToBottom();
+            scrollToBottom()
 
-            const roomName = JSON.parse(document.getElementById('room_slug').textContent);
-            const chatSocket = new WebSocket("ws://" + window.location.host + "/ws/" + roomName + "/");
-            chatSocket.onopen = function (e) {
+            const room_element = document.getElementById("room_slug");
+            const room_name = JSON.parse(room_element.textContent);
+
+            const chat_socket = new WebSocket("ws://" + window.location.host + "/ws/" + room_name + "/");
+
+            chat_socket.onopen = function (e) {
                 console.log("The connection was setup successfully !");
             };
-            chatSocket.onclose = function (e) {
+
+            chat_socket.onclose = function (e) {
                 console.log("Something unexpected happened !");
             };
 
             document.querySelector("#my_input").focus();
+            
+            submit_button = document.querySelector("#submit_button")
+
+            submit_button.onclick = function (e) {
+                let message_input = document.querySelector(
+                    "#my_input"
+                ).value;
+                
+                if (message_input.length === 0) {
+                    alert("Add some Input First Or Press Send Button!")
+                } else {
+                    chat_socket.send(JSON.stringify({
+                        message: message_input,
+                        author: "{{request.user.username}}",
+                        room_id: "{{room.id}}"
+                    }));
+                }
+            };
+            
             document.querySelector("#my_input").onkeyup = function (e) {
                 if (e.keyCode === 13) {
                     e.preventDefault();
-                    document.querySelector("#submit_button").click();
+                    submit_button.click();
                 }
             };
-            document.querySelector("#submit_button").onclick = function (e) {
-                let messageInput = document.querySelector(
-                    "#my_input"
-                ).value;
 
-                if (messageInput.length === 0) {
-                    alert("Add some Input First Or Press Send Button!")
-                } else {
-                    chatSocket.send(JSON.stringify({
-                        message: messageInput,
-                        username: "{{request.user.username}}",
-                        room_name: "{{room_name}}"
-                    }));
-
-
-                }
-
-            };
-
-            chatSocket.onmessage = function (e) {
+            chat_socket.onmessage = function (e) {
                 const data = JSON.parse(e.data);
                 let div = document.createElement("div");
-                div.innerHTML = "<b>" + data.username + "</b> : " + data.message;
 
-                // Add class based on user authentication
-                if (data.username === "{{ request.user.username }}") {
+                // Add class and set text alignment based on user authentication
+                if (data.author === "{{ request.user.username }}") {
                     div.classList.add("chat-message", "text-right");
+                    div.innerHTML = data.content + ": <b>" + data.author + "</b>";
                 } else {
                     div.classList.add("chat-message", "text-left");
+                    div.innerHTML = "<b>" + data.author + "</b> : " + data.content;
                 }
 
+                // Reset value in input box
                 document.querySelector("#my_input").value = "";
-                document.querySelector("#chatbox").appendChild(div);
+
+                // Add new message
+                document.querySelector("#chat_box").appendChild(div);
+                const noMessagesElement = $("b:contains('No Messages in this Room.')").get(0);
+                if (noMessagesElement) {
+                    noMessagesElement.remove();
+                }
                 scrollToBottom();
             };
         </script>
@@ -110,7 +126,7 @@
             <div class="alert alert-info d-flex justify-content-between" role="alert">
                 <h5>You are not logged in</h5>
                 <a href="/accounts/logout/">
-                    <button type="button" class="btn btn-light"><a href="{% url 'login' %}">Log In</a></button>
+                    <button type="button" class="btn btn-outline-dark"><a href="{% url 'login' %}">Log In</a></button>
                 </a>
             </div>
         </div>

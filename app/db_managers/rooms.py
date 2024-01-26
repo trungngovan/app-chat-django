@@ -1,4 +1,5 @@
 from app import models
+from django.contrib.auth.models import User  # Import model User
 
 
 def get_active_rooms(room_id=None, slug=None):
@@ -26,9 +27,11 @@ def get_rooms(room_id=None, slug=None, is_deleted=None):
 
 def create_room(room_dict):
     new_room = models.Room()
+    owner_user = User.objects.get(username=room_dict["owner"])
+    room_dict["owner_id"] = owner_user.id
+    room_dict["websocket_url"] = room_dict["name_room"]
+    room_dict["slug"] = room_dict["name_room"]
     new_room.__dict__.update(**room_dict)
-
-    new_room.websocket_url = '/rooms/%s/' % new_room.id
     new_room.save()
-
     return new_room
+

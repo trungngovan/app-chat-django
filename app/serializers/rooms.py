@@ -4,8 +4,9 @@ from app import models
 
 # Deserializer
 class CreateRoomDeserializer(serializers.Serializer):
-    name = serializers.CharField(max_length=255, required=True)
-    supervisor_id = serializers.IntegerField(required=False)
+    name_room = serializers.CharField(max_length=255, required=True)
+    owner = serializers.CharField(required=True)
+    password = serializers.CharField(max_length=8, required=True)
 
 
 # Serializer
@@ -14,4 +15,3 @@ class RoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Room
         exclude = []
-
